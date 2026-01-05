@@ -1,56 +1,127 @@
-/* add css styles here (optional) */
+/* 
+ * React TimePicker Component Styles
+ * Customize via CSS custom properties (variables)
+ */
 
-.test {
-  display: inline-block;
-  margin: 2em auto;
-  border: 2px solid #000;
-  font-size: 2em;
-}
+.timepicker {
+  /* Customizable variables with sensible defaults */
+  --timepicker-bg: #ffffff;
+  --timepicker-text: #1f2937;
+  --timepicker-text-secondary: #6b7280;
+  --timepicker-border: #d1d5db;
+  --timepicker-border-focus: #3b82f6;
+  --timepicker-hover-bg: #f3f4f6;
+  --timepicker-selected-bg: #3b82f6;
+  --timepicker-selected-text: #ffffff;
+  --timepicker-error: #ef4444;
+  --timepicker-error-bg: #fef2f2;
+  --timepicker-radius: 6px;
+  --timepicker-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --timepicker-font-family: inherit;
+  --timepicker-font-size: 14px;
+  --timepicker-input-height: 40px;
+  --timepicker-dropdown-max-height: 240px;
+  --timepicker-z-index: 1000;
 
-.timepicker__time-wrapper {
-  overflow-y: auto;
-  max-height: 210px;
-  width: 100%;
-  background: #fff;
-  border: 1px solid #fff;
-  -webkit-box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.1);
-  -moz-box-shadow:0 4px 8px 0 rgba(0, 0, 0, 0.1);
-  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.1);
-  outline: none;
-  margin: 0;
-  position: absolute;
-}
-
-.timepicker__time-ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.div {
-  background-color: #59983b;
-}
-
-.timepicker__time-li {
-  padding: 12px;
-  font-size: 14px;
-  cursor: pointer;
-  white-space: nowrap;
-  color: #565656;
-  list-style: none;
-  margin: 0;
-}
-
-.timepicker__time:hover {
-    background-color: #1C77A0;
-    color: #fff;
-}
-
-.timepicker__container {
   position: relative;
-  max-height: 44px;
+  display: inline-block;
+  width: 100%;
+  font-family: var(--timepicker-font-family);
+  font-size: var(--timepicker-font-size);
 }
-.timepicker__error-message {
-  font: 14px 'ProximaNovaBold', 'Helvetica Neue', 'Helvetica, Arial, sans-serif';
-  color: #C3543E;
+
+/* Input field */
+.timepicker__input {
+  width: 100%;
+  height: var(--timepicker-input-height);
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: inherit;
+  color: var(--timepicker-text);
+  background-color: var(--timepicker-bg);
+  border: 1px solid var(--timepicker-border);
+  border-radius: var(--timepicker-radius);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.timepicker__input:focus {
+  border-color: var(--timepicker-border-focus);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.timepicker__input::placeholder {
+  color: var(--timepicker-text-secondary);
+}
+
+.timepicker__input--error {
+  border-color: var(--timepicker-error);
+  background-color: var(--timepicker-error-bg);
+}
+
+.timepicker__input--error:focus {
+  border-color: var(--timepicker-error);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+
+/* Dropdown container */
+.timepicker__dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: var(--timepicker-dropdown-max-height);
+  overflow-y: auto;
+  background-color: var(--timepicker-bg);
+  border: 1px solid var(--timepicker-border);
+  border-radius: var(--timepicker-radius);
+  box-shadow: var(--timepicker-shadow);
+  z-index: var(--timepicker-z-index);
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+}
+
+/* Time option */
+.timepicker__option {
+  padding: 8px 12px;
+  cursor: pointer;
+  color: var(--timepicker-text);
+  transition: background-color 0.1s ease-in-out;
+  outline: none;
+}
+
+.timepicker__option:hover,
+.timepicker__option--highlighted {
+  background-color: var(--timepicker-hover-bg);
+}
+
+.timepicker__option--selected {
+  background-color: var(--timepicker-selected-bg);
+  color: var(--timepicker-selected-text);
+}
+
+.timepicker__option--selected:hover {
+  background-color: var(--timepicker-selected-bg);
+}
+
+/* Error message */
+.timepicker__error {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--timepicker-error);
+}
+
+/* Visually hidden (for screen readers) */
+.timepicker__visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }

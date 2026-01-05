@@ -1,217 +1,340 @@
-import * as React from 'react';
 import {
-  generateTimesInRange,
-  filterTimesByUserInput,
-  cleanTime,
-  isValidTime
-} from './utils/validation';
+  useState,
+  useCallback,
+  useMemo,
+  useRef,
+  useEffect,
+  forwardRef,
+  type KeyboardEvent,
+  type ChangeEvent,
+  type FocusEvent,
+} from 'react';
+import {
+  generateTimeRange,
+  filterTimesByInput,
+  isValidTime,
+  cleanTimeString,
+} from './utils/time';
+import './styles.css';
 
-import styled, { css } from 'styled-components';
-
-
-export interface Props {
-  timeValue: string;
+export interface TimePickerProps {
+  /** Current time value (e.g., "2:30pm") */
+  value: string;
+  /** Callback when time changes */
   onChange: (time: string) => void;
+  /** Minimum selectable time (default: "12:00am") */
   minTime?: string;
+  /** Maximum selectable time (default: "11:59pm") */
   maxTime?: string;
-  hasTimeError?: boolean;
+  /** Interval between time options in minutes (default: 30) */
   interval?: number;
+  /** Show error state */
+  error?: boolean;
+  /** Error message to display */
+  errorMessage?: string;
+  /** Input placeholder text */
+  placeholder?: string;
+  /** Input name attribute */
   name?: string;
+  /** Input id attribute */
+  id?: string;
+  /** Disabled state */
+  disabled?: boolean;
+  /** Additional CSS class for the container */
+  className?: string;
+  /** Callback when input loses focus */
+  onBlur?: (event: FocusEvent<HTMLInputElement>) => void;
+  /** Callback when input gains focus */
+  onFocus?: (event: FocusEvent<HTMLInputElement>) => void;
+  /** Accessible label for the input */
+  'aria-label'?: string;
+  /** ID of element that labels the input */
+  'aria-labelledby'?: string;
 }
 
-interface State {
-  isMenuOpen: boolean;
-  hasError: boolean;
-  hasUserInput: boolean;
-}
+/**
+ * A lightweight, accessible timepicker component for React
+ * with full keyboard navigation and CSS customization.
+ */
+export const TimePicker = forwardRef<HTMLInputElement, TimePickerProps>(
+  (
+    {
+      value,
+      onChange,
+      minTime = '12:00am',
+      maxTime = '11:59pm',
+      interval = 30,
+      error = false,
+      errorMessage = 'Please enter a valid time',
+      placeholder = 'Select time',
+      name,
+      id,
+      disabled = false,
+      className = '',
+      onBlur,
+      onFocus,
+      'aria-label': ariaLabel,
+      'aria-labelledby': ariaLabelledBy,
+    },
+    ref
+  ) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [highlightedIndex, setHighlightedIndex] = useState(-1);
+    const [hasInteracted, setHasInteracted] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+    const listRef = useRef<HTMLUListElement>(null);
+    const internalRef = useRef<HTMLInputElement>(null);
 
-const overlay = css`
-    background-color: #fff;
-    border: none;
-    border-radius: 3px;
-    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.1);
-`;
-
-
-const StyledInput = styled.input`
-  margin-bottom: 0;
-  width: 100%;
-  height: 20px;
-  color: rgb(86, 86, 86);
-  outline: none;
-  padding: 12px;
-  border-width: 1px;
-  border-style: solid;
-  border-color: rgb(221, 221, 221);
-  border-image: initial;
-  border-radius: 3px;
-  font: 14px ProximaNovaRegular, "Helvetica Neue", Helvetica, Arial, sans-serif;
-`;
-
-const TimeWrapper = styled.div`
-  overflow-y: auto;
-  max-height: 210px;
-  width: 100%;
-  background: #fff;
-  border: 1px solid #fff;
-  -webkit-box-shadow: ${overlay};
-  -moz-box-shadow: ${overlay};
-  box-shadow: ${overlay};
-  outline: none;
-  margin: 0;
-  position: absolute;
-`;
-
-const Container = styled.div`
-  position: relative;
-  max-height: 44px;
-`;
-
-const TimeMenu = styled.ul`
-  margin: 0;
-  padding: 0;
-  list-style: none;
-`;
-
-const TimeList = styled.li`
-  padding: 12px;
-  font-size: 14px;
-  cursor: pointer;
-  white-space: nowrap;
-  color: #565656;
-  list-style: none;
-  margin: 0;
-  &:hover {
-    background-color: #808080;
-    color: #fff;
-  }
-`;
-
-const Error = styled.div`
-  font: 14px 'ProximaNovaBold', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  color: #C3543E;
-`;
-
-class TimeSelectField extends React.Component<Props, State> {
-  private readonly timeOptions: string[];
-
-  public static defaultProps = {
-    minTime: '12:00am',
-    maxTime: '11:30pm',
-    interval: 30
-  };
-
-  constructor(props: Props) {
-    super(props);
-
-    this.state = {
-      isMenuOpen: false,
-      hasError: false,
-      hasUserInput: false
-    };
-
-    this.timeOptions = generateTimesInRange(
-      this.props.minTime!,
-      this.props.maxTime!,
-      this.props.interval!
+    // Merge refs
+    const setRefs = useCallback(
+      (node: HTMLInputElement | null) => {
+        (internalRef as React.MutableRefObject<HTMLInputElement | null>).current = node;
+        if (typeof ref === 'function') {
+          ref(node);
+        } else if (ref) {
+          (ref as React.MutableRefObject<HTMLInputElement | null>).current = node;
+        }
+      },
+      [ref]
     );
 
-    this.handleFocus = this.handleFocus.bind(this);
-    this.handleBlur = this.handleBlur.bind(this);
-    this.handleTimeInputChange = this.handleTimeInputChange.bind(this);
-    this.handleOptionSelect = this.handleOptionSelect.bind(this);
-  }
+    // Generate time options (memoized)
+    const timeOptions = useMemo(
+      () => generateTimeRange(minTime, maxTime, interval),
+      [minTime, maxTime, interval]
+    );
 
-  public handleFocus() {
-    this.setState({
-      isMenuOpen: true
-    });
-  }
+    // Filter options based on user input
+    const filteredOptions = useMemo(() => {
+      if (!value || !hasInteracted) return timeOptions;
+      return filterTimesByInput(timeOptions, value);
+    }, [timeOptions, value, hasInteracted]);
 
-  public handleTimeInputChange(e: any) {
-    if (e.target.value.length) {
-      this.setState({
-        hasUserInput: true
-      });
-    }
-    this.props.onChange(e.target.value);
-  }
+    // Handle click outside to close dropdown
+    useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+        if (
+          containerRef.current &&
+          !containerRef.current.contains(event.target as Node)
+        ) {
+          setIsOpen(false);
+        }
+      };
 
-  public handleBlur() {
-    const hasError = !isValidTime!(this.props.timeValue);
+      if (isOpen) {
+        document.addEventListener('mousedown', handleClickOutside);
+      }
 
-    this.setState({
-      isMenuOpen: false,
-      hasError,
-      hasUserInput: false
-    });
-  }
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }, [isOpen]);
 
-  public handleOptionSelect(
-    event: React.MouseEvent<HTMLLIElement, MouseEvent>
-  ) {
-    const userInput =
-      (event.currentTarget.dataset && event.currentTarget.dataset.time) || '';
+    // Scroll highlighted option into view
+    useEffect(() => {
+      if (isOpen && highlightedIndex >= 0 && listRef.current) {
+        const option = listRef.current.children[highlightedIndex] as HTMLElement;
+        option?.scrollIntoView?.({ block: 'nearest' });
+      }
+    }, [isOpen, highlightedIndex]);
 
-    this.setState({
-      isMenuOpen: false,
-      hasError: false
-    });
+    // Reset highlighted index when options change
+    useEffect(() => {
+      setHighlightedIndex(-1);
+    }, [filteredOptions]);
 
-    this.props.onChange(userInput);
-  }
+    const handleInputChange = useCallback(
+      (event: ChangeEvent<HTMLInputElement>) => {
+        const newValue = event.target.value;
+        setHasInteracted(true);
+        onChange(newValue);
+        if (!isOpen) {
+          setIsOpen(true);
+        }
+      },
+      [onChange, isOpen]
+    );
 
-  render() {
-    const { hasError, isMenuOpen, hasUserInput } = this.state;
+    const handleInputFocus = useCallback(
+      (event: FocusEvent<HTMLInputElement>) => {
+        setIsOpen(true);
+        onFocus?.(event);
+      },
+      [onFocus]
+    );
 
-    const timeOptionsRendered = hasUserInput
-      ? filterTimesByUserInput(this.timeOptions, this.props.timeValue)
-      : this.timeOptions;
+    const handleInputBlur = useCallback(
+      (event: FocusEvent<HTMLInputElement>) => {
+        // Delay to allow click on option to register
+        setTimeout(() => {
+          if (!containerRef.current?.contains(document.activeElement)) {
+            setIsOpen(false);
+            setHasInteracted(false);
+          }
+        }, 150);
+        onBlur?.(event);
+      },
+      [onBlur]
+    );
 
-    const timeValue = cleanTime(this.props.timeValue);
-    const isError = hasError || this.props.hasTimeError;
+    const handleOptionSelect = useCallback(
+      (time: string) => {
+        onChange(time);
+        setIsOpen(false);
+        setHasInteracted(false);
+        internalRef.current?.focus();
+      },
+      [onChange]
+    );
 
-    const borderStyle = {
-      borderColor: `${isError ? `#C3543E` : ''}`
-    };
+    const handleKeyDown = useCallback(
+      (event: KeyboardEvent<HTMLInputElement>) => {
+        if (disabled) return;
+
+        switch (event.key) {
+          case 'ArrowDown':
+            event.preventDefault();
+            if (!isOpen) {
+              setIsOpen(true);
+            } else {
+              setHighlightedIndex((prev) =>
+                prev < filteredOptions.length - 1 ? prev + 1 : 0
+              );
+            }
+            break;
+
+          case 'ArrowUp':
+            event.preventDefault();
+            if (!isOpen) {
+              setIsOpen(true);
+            } else {
+              setHighlightedIndex((prev) =>
+                prev > 0 ? prev - 1 : filteredOptions.length - 1
+              );
+            }
+            break;
+
+          case 'Enter':
+            event.preventDefault();
+            if (isOpen && highlightedIndex >= 0) {
+              handleOptionSelect(filteredOptions[highlightedIndex]);
+            } else if (!isOpen) {
+              setIsOpen(true);
+            }
+            break;
+
+          case 'Escape':
+            event.preventDefault();
+            setIsOpen(false);
+            break;
+
+          case 'Tab':
+            setIsOpen(false);
+            break;
+        }
+      },
+      [disabled, isOpen, highlightedIndex, filteredOptions, handleOptionSelect]
+    );
+
+    const showError =
+      error || (hasInteracted && value && !isValidTime(value));
+    const listboxId = id ? `${id}-listbox` : 'timepicker-listbox';
 
     return (
-      <Container id="timepickerContainer">
-        <StyledInput
-          id="timepickerInput"
-          name={this.props.name}
-          value={timeValue}
-          onFocus={this.handleFocus}
-          onChange={this.handleTimeInputChange}
-          onBlur={this.handleBlur}
-          placeholder="Select time"
+      <div
+        ref={containerRef}
+        className={`timepicker ${className}`.trim()}
+        data-testid="timepicker"
+      >
+        <input
+          ref={setRefs}
+          type="text"
+          id={id}
+          name={name}
+          value={cleanTimeString(value)}
+          onChange={handleInputChange}
+          onFocus={handleInputFocus}
+          onBlur={handleInputBlur}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          disabled={disabled}
           autoComplete="off"
-          style={borderStyle}
+          role="combobox"
+          aria-expanded={isOpen}
+          aria-haspopup="listbox"
+          aria-controls={listboxId}
+          aria-activedescendant={
+            isOpen && highlightedIndex >= 0
+              ? `${listboxId}-option-${highlightedIndex}`
+              : undefined
+          }
+          aria-invalid={showError ? 'true' : undefined}
+          aria-label={ariaLabel}
+          aria-labelledby={ariaLabelledBy}
+          className={`timepicker__input ${showError ? 'timepicker__input--error' : ''}`.trim()}
+          data-testid="timepicker-input"
         />
-        {isMenuOpen && (
-          <TimeWrapper id="timepickerList">
-            <TimeMenu id="timeOptions">
-              {timeOptionsRendered.map((time, i) => {
-                return (
-                  <TimeList
-                    id="timepickerListItems"
-                    key={`time-list-item-${i}`}
-                    onMouseDown={this.handleOptionSelect}
-                    data-time={time}
-                  >
-                    {time}
-                  </TimeList>
-                );
-              })}
-            </TimeMenu>
-          </TimeWrapper>
+
+        {isOpen && filteredOptions.length > 0 && (
+          <ul
+            ref={listRef}
+            id={listboxId}
+            role="listbox"
+            className="timepicker__dropdown"
+            data-testid="timepicker-dropdown"
+          >
+            {filteredOptions.map((time, index) => (
+              <li
+                key={time}
+                id={`${listboxId}-option-${index}`}
+                role="option"
+                aria-selected={highlightedIndex === index}
+                className={`timepicker__option ${
+                  highlightedIndex === index
+                    ? 'timepicker__option--highlighted'
+                    : ''
+                } ${
+                  cleanTimeString(value) === cleanTimeString(time)
+                    ? 'timepicker__option--selected'
+                    : ''
+                }`.trim()}
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  handleOptionSelect(time);
+                }}
+                onMouseEnter={() => setHighlightedIndex(index)}
+                data-testid={`timepicker-option-${index}`}
+              >
+                {time}
+              </li>
+            ))}
+          </ul>
         )}
-     {isError && (
-        <Error id="timepickerError">Select a valid time</Error>
-      )}
-      </Container>
+
+        {showError && (
+          <div
+            className="timepicker__error"
+            role="alert"
+            data-testid="timepicker-error"
+          >
+            {errorMessage}
+          </div>
+        )}
+      </div>
     );
   }
-}
+);
 
-export default TimeSelectField;
+TimePicker.displayName = 'TimePicker';
+
+// Export utilities for advanced users
+export {
+  generateTimeRange,
+  filterTimesByInput,
+  isValidTime,
+  cleanTimeString,
+  parseTime,
+  formatTime,
+} from './utils/time';
+
+export type { TimeValue } from './utils/time';

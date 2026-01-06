@@ -141,20 +141,6 @@ isValidTime("2:30pm"); // true
 
 Check out the interactive demo: [https://nosisky.github.io/react-nano-timepicker/](https://nosisky.github.io/react-nano-timepicker/)
 
-## Migration
-
-### From react-timepicker-c (v1.x)
-
-- **React 18+ required** - This version requires React 18 or 19
-- **CSS import required** - You must import the styles separately: `import "react-nano-timepicker/styles.css"`
-- **Prop renames**:
-  - `timeValue` → `value`
-  - `hasTimeError` → `error`
-
-### From react-timepicker-c (v2.x)
-
-- **Rename only** - Just update your imports from `react-timepicker-c` to `react-nano-timepicker`.
-
 ## License
 
 MIT © [nosisky](https://github.com/nosisky)

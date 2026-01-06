@@ -1,10 +1,10 @@
-# react-timepicker-c
+# react-nano-timepicker
 
 > A lightweight, accessible timepicker component for React with full keyboard navigation and CSS customization.
 
-[![NPM](https://img.shields.io/npm/v/react-timepicker-c.svg)](https://www.npmjs.com/package/react-timepicker-c)
-[![Bundle Size](https://img.shields.io/bundlephobia/minzip/react-timepicker-c)](https://bundlephobia.com/package/react-timepicker-c)
-[![License](https://img.shields.io/npm/l/react-timepicker-c)](https://github.com/nosisky/react-timepicker-c/blob/main/LICENSE)
+[![NPM](https://img.shields.io/npm/v/react-nano-timepicker.svg)](https://www.npmjs.com/package/react-nano-timepicker)
+[![Bundle Size](https://img.shields.io/bundlephobia/minzip/react-nano-timepicker)](https://bundlephobia.com/package/react-nano-timepicker)
+[![License](https://img.shields.io/npm/l/react-nano-timepicker)](https://github.com/nosisky/react-nano-timepicker/blob/main/LICENSE)
 
 ## Features
 
@@ -18,15 +18,15 @@
 ## Installation
 
 ```bash
-npm install react-timepicker-c
+npm install react-nano-timepicker
 ```
 
 ## Quick Start
 
 ```tsx
 import { useState } from "react";
-import { TimePicker } from "react-timepicker-c";
-import "react-timepicker-c/styles.css";
+import { TimePicker } from "react-nano-timepicker";
+import "react-nano-timepicker/styles.css";
 
 function App() {
   const [time, setTime] = useState("");
@@ -120,8 +120,8 @@ import {
   parseTime,
   formatTime,
   generateTimeRange,
-  isValidTime
-} from "react-timepicker-c";
+  isValidTime,
+} from "react-nano-timepicker";
 
 // Parse time string to { hours, minutes }
 parseTime("2:30pm"); // { hours: 14, minutes: 30 }
@@ -137,32 +137,23 @@ generateTimeRange("9:00am", "5:00pm", 60);
 isValidTime("2:30pm"); // true
 ```
 
-## Migration from v1.x
+## Demo
 
-### Breaking Changes
+Check out the interactive demo: [https://nosisky.github.io/react-nano-timepicker/](https://nosisky.github.io/react-nano-timepicker/)
+
+## Migration
+
+### From react-timepicker-c (v1.x)
 
 - **React 18+ required** - This version requires React 18 or 19
-- **CSS import required** - You must import the styles separately
+- **CSS import required** - You must import the styles separately: `import "react-nano-timepicker/styles.css"`
 - **Prop renames**:
   - `timeValue` → `value`
   - `hasTimeError` → `error`
 
-### Before (v1.x)
+### From react-timepicker-c (v2.x)
 
-```tsx
-import TimePicker from "react-timepicker-c";
-
-<TimePicker timeValue={time} onChange={handleChange} hasTimeError={hasError} />;
-```
-
-### After (v2.x)
-
-```tsx
-import { TimePicker } from "react-timepicker-c";
-import "react-timepicker-c/styles.css";
-
-<TimePicker value={time} onChange={handleChange} error={hasError} />;
-```
+- **Rename only** - Just update your imports from `react-timepicker-c` to `react-nano-timepicker`.
 
 ## License
 

@@ -1,16 +1,16 @@
 {
-  "name": "react-timepicker-c",
-  "version": "2.0.0",
+  "name": "react-nano-timepicker",
+  "version": "1.0.0",
   "description": "A lightweight, accessible timepicker component for React with full keyboard navigation and CSS customization",
   "author": "nosisky",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nosisky/react-timepicker-c.git"
+    "url": "git+https://github.com/nosisky/react-nano-timepicker.git"
   },
-  "homepage": "https://github.com/nosisky/react-timepicker-c#readme",
+  "homepage": "https://github.com/nosisky/react-nano-timepicker#readme",
   "bugs": {
-    "url": "https://github.com/nosisky/react-timepicker-c/issues"
+    "url": "https://github.com/nosisky/react-nano-timepicker/issues"
   },
   "type": "module",
   "main": "./dist/index.cjs",
@@ -41,6 +41,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:demo": "vite build -c vite.demo.config.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

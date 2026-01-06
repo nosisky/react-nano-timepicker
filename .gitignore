@@ -20,3 +20,10 @@ dist
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+
+# builds
+build
+dist
+dist-demo
+.rpt2_cache

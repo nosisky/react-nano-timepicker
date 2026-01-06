@@ -42,6 +42,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "build:demo": "vite build -c vite.demo.config.ts",
+    "preview:demo": "vite preview -c vite.demo.config.ts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",

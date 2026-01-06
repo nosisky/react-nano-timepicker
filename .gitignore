@@ -11,8 +11,6 @@ dist
 
 # misc
 .DS_Store
-.env
-.env.local
 .env.development.local
 .env.test.local
 .env.production.local
@@ -27,3 +25,4 @@ build
 dist
 dist-demo
 .rpt2_cache
+config.bat
